@@ -6,7 +6,9 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 from .epicur import InvenioSerializerEpicur
+from.xmetadiss import InvenioSerializerXMetaDissPlus
 
 __all__ = (
     "InvenioSerializerEpicur",
+    "InvenioSerializerXMetaDissPlus",
 )

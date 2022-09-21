@@ -2,10 +2,10 @@
 #
 # Copyright (C) 2022 University of Münster.
 #
-# Invenio-Serializer-Epicur is free software; you can redistribute it and/or modify
+# Invenio-Dnb-Urn is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-"""Epicur-based data model for Invenio."""
+"""xMetaDissPlus-based data model for Invenio."""
 
 from invenio_rdm_records.oaiserver.resources.config import OAIPMHServerResourceConfig
 from invenio_rdm_records.oaiserver.resources.resources import OAIPMHServerResource
@@ -13,8 +13,8 @@ from invenio_rdm_records.oaiserver.services.config import OAIPMHServerServiceCon
 from invenio_rdm_records.oaiserver.services.services import OAIPMHServerService
 
 
-class InvenioSerializerEpicur(object):
-    """Invenio-Serializer-Epicur extension."""
+class InvenioSerializerXMetaDissPlus(object):
+    """Invenio-Serializer-xMetaDiss extension."""
 
     def __init__(self, app=None):
         """Extension initialization."""
@@ -25,7 +25,10 @@ class InvenioSerializerEpicur(object):
         self.init_config(app)
         self.init_services(app)
         self.init_resource(app)
-        app.extensions["invenio-dnb-urn"] = self
+        app.extensions["invenio_dnb_urn"] = self
+
+    def init_config(self, app):
+        """Initialize configuration."""
 
     def init_config(self, app):
         """Initialize configuration."""
