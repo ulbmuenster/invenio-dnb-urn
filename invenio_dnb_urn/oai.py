@@ -17,7 +17,7 @@ def epicur_etree(pid, record):
     It assumes that record is a search result.
     """
     nsmap = {
-        None: "urn:nbn:de:1111-2004033116",
+        "xMetaDiss": "http://www.d-nb.de/standards/xmetadissplus/",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     }
 
@@ -54,3 +54,25 @@ def epicur_etree(pid, record):
 
     # print(record['_source']['metadata']['identifiers'])
     return epicur
+
+def xmetadiss_etree(pid, record):
+    """OAI Epicur XML format for OAI-PMH.
+
+    It assumes that record is a search result.
+    """
+    nsmap = {
+        "xMetaDiss": "http://www.d-nb.de/standards/xmetadissplus/",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    }
+
+    attribs = {
+        f"{{{nsmap['xsi']}}}schemaLocation": (
+            "http://www.d-nb.de/standards/xmetadissplus/ "
+            "http://www.d-nb.de/standards/xmetadissplus/xmetadissplus.xsd"
+        ),
+    }
+
+    # prepare the structure required by the 'xMetaDissPlus' metadataPrefix
+    xmetadiss = etree.Element("{http://www.d-nb.de/standards/xmetadissplus/}xMetaDiss", nsmap=nsmap, attrib=attribs)
+
+    return xmetadiss
