@@ -52,7 +52,6 @@ def epicur_etree(pid, record):
     url_format.text = "text/html"
     identifier_url.text = current_app.config.get("SITE_UI_URL") + "/records/" + record['_source']['id']
 
-    # print(record['_source']['metadata']['identifiers'])
     return epicur
 
 def xmetadiss_etree(pid, record):
@@ -62,6 +61,9 @@ def xmetadiss_etree(pid, record):
     """
     nsmap = {
         "xMetaDiss": "http://www.d-nb.de/standards/xmetadissplus/",
+        "dc": "http://purl.org/dc/elements/1.1/",
+        "dcterms": "http://purl.org/dc/terms/",
+        "ddb": "http://www.d-nb.de/standards/ddb/",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     }
 
@@ -72,7 +74,36 @@ def xmetadiss_etree(pid, record):
         ),
     }
 
+    metadata = record['_source']['metadata']
     # prepare the structure required by the 'xMetaDissPlus' metadataPrefix
     xmetadiss = etree.Element("{http://www.d-nb.de/standards/xmetadissplus/}xMetaDiss", nsmap=nsmap, attrib=attribs)
+    lang = metadata['languages'][0]['id']
+    if lang == "deu":
+        lang = "ger"
+    title = etree.SubElement(
+        xmetadiss, "{http://purl.org/dc/elements/1.1/}title",
+        nsmap=nsmap,
+        attrib={'lang': lang, '{http://www.w3.org/2001/XMLSchema-instance}type': 'ddb:titleISO639-2'})
+    title.text = metadata['title']
+    if 'additional_titles' in metadata:
+        for additionaltitle in metadata['additional_titles']:
+            lang = additionaltitle['lang']['id']
+            if lang == "deu":
+                lang = "ger"
+            if additionaltitle['type']['id'] == 'translated-title' or additionaltitle['type']['id'] == 'subtitle':
+                alternativetitle = etree.SubElement(
+                    xmetadiss, "{http://purl.org/dc/terms/}alternative",
+                    nsmap=nsmap,
+                    attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'ddb:talternativeISO639-2',
+                            'lang': lang})
+                if additionaltitle['type']['id'] == 'translated-title':
+                    alternativetitle.attrib['{http://www.d-nb.de/standards/ddb/}type'] = 'translated'
+                alternativetitle.text = additionaltitle['title']
+    for mcreator in metadata['creators']:
+        creator = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}creator",
+        nsmap=nsmap,
+        attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'pc:MetaPers'})
+        print(creator)
+#        print(a_title['type'])
 
     return xmetadiss
