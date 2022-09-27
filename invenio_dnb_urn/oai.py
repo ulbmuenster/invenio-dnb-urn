@@ -64,6 +64,8 @@ def xmetadiss_etree(pid, record):
         "dc": "http://purl.org/dc/elements/1.1/",
         "dcterms": "http://purl.org/dc/terms/",
         "ddb": "http://www.d-nb.de/standards/ddb/",
+        "pc": "http://www.d-nb.de/standards/pc/",
+        "cc": "http://www.d-nb.de/standards/cc/",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     }
 
@@ -101,9 +103,80 @@ def xmetadiss_etree(pid, record):
                 alternativetitle.text = additionaltitle['title']
     for mcreator in metadata['creators']:
         creator = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}creator",
-        nsmap=nsmap,
-        attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'pc:MetaPers'})
-        print(creator)
-#        print(a_title['type'])
+                                   nsmap=nsmap,
+                                   attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'pc:MetaPers'})
+        person = etree.SubElement(creator, "{http://www.d-nb.de/standards/pc/}person", nsmap=nsmap)
+        mperson = mcreator['person_or_org']
+        if 'identifiers' in mperson:
+            for midentifier in mperson['identifiers']:
+                mscheme = midentifier['scheme']
+                if mscheme == "orcid":
+                    id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}ORCID")
+                    id.text = midentifier['identifier']
+                elif mscheme == "gnd":
+                    person.attrib['{http://www.d-nb.de/standards/ddb/}GND-Nr'] = midentifier['identifier']
+                elif mscheme == "isni":
+                    id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}ISNI")
+                    id.text = midentifier['identifier']
+                elif mscheme == "ror":
+                    id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}OtherId")
+                    id.text = "(ror)" + midentifier['identifier']
+        name = etree.SubElement(person, "{http://www.d-nb.de/standards/pc/}name", nsmap=nsmap)
+        if mperson['type'] == 'personal':
+            name.attrib['type'] = "nameUsedByThePerson"
+            foreName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}foreName", nsmap=nsmap)
+            foreName.text = mperson['given_name']
+            surName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}surName", nsmap=nsmap)
+            surName.text = mperson['family_name']
+            if 'affiliations' in mcreator:
+                maffiliation = mcreator['affiliations'][0]
+                affiliation = etree.SubElement(person, "{http://www.d-nb.de/standards/pc/}affiliation", nsmap=nsmap)
+                institution = etree.SubElement(affiliation,
+                                               "{http://www.d-nb.de/standards/cc/}universityOrInstitution",
+                                               nsmap=nsmap)
+                ccname = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}name", nsmap=nsmap)
+                ccname.text = maffiliation['name']
+        else:
+            name.attrib['type'] = "otherName"
+            name.attrib['otherNameType'] = "organisation"
+            organisationName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}organisationName", nsmap=nsmap)
+            organisationName.text = mperson['name']
+    if 'subjects' in metadata:
+        for msubject in metadata['subjects']:
+            subject = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}subject", nsmap=nsmap)
+            if msubject['scheme'] == 'FOS':
+                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
+                subject.text = msubject['subject']
+            elif 'DDC' in msubject['scheme']:
+                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "dcterms:DDC"
+                id = msubject['id']
+                reversed_id = "".join(reversed(id))
+                last_slash = len(id) - reversed_id.index("/") - 1
+                subject.text = id[last_slash + 1:]
+            else:
+                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
+                subject.text = msubject['subject']
+    mpublisher = metadata['publisher']
+    if '/' in mpublisher:
+        reversed_mpublisher = "".join(reversed(mpublisher))
+        first_slash = mpublisher.index("/")
+        last_slash = len(mpublisher) - reversed_mpublisher.index("/") - 1
+        sinstitution = mpublisher[:first_slash].rstrip()
+        splace = mpublisher[last_slash + 1:].lstrip()
+    else:
+        sinstitution = mpublisher
+        splace = "..."
+    publisher = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}publisher", nsmap=nsmap,
+                                 attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "cc:Publisher"})
+    institution = etree.SubElement(publisher,
+                                   "{http://www.d-nb.de/standards/cc/}universityOrInstitution",
+                                   nsmap=nsmap)
+    ccname = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}name", nsmap=nsmap)
+    ccname.text = sinstitution
+    ccplace = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}place", nsmap=nsmap)
+    ccplace.text = splace
+
+    print(metadata)
+
 
     return xmetadiss
