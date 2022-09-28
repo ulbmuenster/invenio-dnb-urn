@@ -175,8 +175,14 @@ def xmetadiss_etree(pid, record):
     ccname.text = sinstitution
     ccplace = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}place", nsmap=nsmap)
     ccplace.text = splace
-
-    print(metadata)
+    date_issued = None
+    if 'dates' in metadata:
+        for mdate in metadata['dates']:
+            if mdate['type']['id'] == 'issued':
+                date_issued = mdate['date']
+    if date_issued == None:
+        date_issued = metadata['publication_date']
+    print(date_issued)
 
 
     return xmetadiss
