@@ -10,6 +10,8 @@
 from flask import current_app
 from lxml import etree
 
+from .utils import get_vocabulary_props
+
 
 def epicur_etree(pid, record):
     """OAI Epicur XML format for OAI-PMH.
@@ -175,14 +177,28 @@ def xmetadiss_etree(pid, record):
     ccname.text = sinstitution
     ccplace = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}place", nsmap=nsmap)
     ccplace.text = splace
-    date_issued = None
+    mdate_issued = None
     if 'dates' in metadata:
         for mdate in metadata['dates']:
             if mdate['type']['id'] == 'issued':
-                date_issued = mdate['date']
-    if date_issued == None:
-        date_issued = metadata['publication_date']
-    print(date_issued)
+                mdate_issued = mdate['date']
+    if mdate_issued == None:
+        mdate_issued = metadata['publication_date']
+    date_issued = etree.SubElement(xmetadiss, "{http://purl.org/dc/terms/}issued", nsmap=nsmap,
+                                 attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "dcterms:W3CDTF"})
+    date_issued.text = mdate_issued
+    props = get_vocabulary_props(
+        "resourcetypes",
+        [
+            "props.openaire_type",
+        ],
+        metadata["resource_type"]["id"],
+    )
+    t = props.get("openaire_type")
 
+    print(props)
+    print(t)
+
+# 'resource_type': {'id': 'dataset', 'title': {'de': 'Datensatz', 'en': 'Dataset'}, 'props': {'type': 'dataset'}
 
     return xmetadiss
