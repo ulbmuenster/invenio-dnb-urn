@@ -13,3 +13,6 @@ EPICUR_NBN_SCHEME = "urn:nbn:de"
 
 URN_DNB_ID_PREFIX = ""
 """Provide a URN prefix here."""
+
+XMETADISS_TYPE_DINI_PUBLTYPE = ""
+XMETADISS_TYPE_DCTERMS_DCMITYPE = ""
