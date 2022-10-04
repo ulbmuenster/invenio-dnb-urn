@@ -146,18 +146,19 @@ def xmetadiss_etree(pid, record):
     if 'subjects' in metadata:
         for msubject in metadata['subjects']:
             subject = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}subject", nsmap=nsmap)
-            if msubject['scheme'] == 'FOS':
-                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
-                subject.text = msubject['subject']
-            elif 'DDC' in msubject['scheme']:
-                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "dcterms:DDC"
-                id = msubject['id']
-                reversed_id = "".join(reversed(id))
-                last_slash = len(id) - reversed_id.index("/") - 1
-                subject.text = id[last_slash + 1:]
-            else:
-                subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
-                subject.text = msubject['subject']
+            if 'scheme' in msubject:
+                if msubject['scheme'] == 'FOS':
+                    subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
+                    subject.text = msubject['subject']
+                elif 'DDC' in msubject['scheme']:
+                    subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "dcterms:DDC"
+                    id = msubject['id']
+                    reversed_id = "".join(reversed(id))
+                    last_slash = len(id) - reversed_id.index("/") - 1
+                    subject.text = id[last_slash + 1:]
+                else:
+                    subject.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'] = "xMetaDiss:noScheme"
+                    subject.text = msubject['subject']
     mpublisher = metadata['publisher']
     if '/' in mpublisher:
         reversed_mpublisher = "".join(reversed(mpublisher))
@@ -187,18 +188,37 @@ def xmetadiss_etree(pid, record):
     date_issued = etree.SubElement(xmetadiss, "{http://purl.org/dc/terms/}issued", nsmap=nsmap,
                                  attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "dcterms:W3CDTF"})
     date_issued.text = mdate_issued
-    props = get_vocabulary_props(
-        "resourcetypes",
-        [
-            "props.openaire_type",
-        ],
-        metadata["resource_type"]["id"],
-    )
-    t = props.get("openaire_type")
+    dini_mapping = current_app.config.get("XMETADISS_TYPE_DINI_PUBLTYPE")
+    dcterms_mapping = current_app.config.get("XMETADISS_TYPE_DCTERMS_DCMITYPE")
+    xmetadiss = add_dctype(xmetadiss, nsmap, metadata, dini_mapping, 'dini:publType')
+    xmetadiss = add_dctype(xmetadiss, nsmap, metadata, dcterms_mapping, 'dcterms:DCMIType')
 
-    print(props)
-    print(t)
+    pids = record['_source']['pids']
+    for mpid in pids:
+        if 'urn' in mpid:
+            print(pids['urn']['identifier'])
+        if 'doi' in mpid:
+            print(pids['doi']['identifier'])
+
+    print(record)
+    print(pid)
 
 # 'resource_type': {'id': 'dataset', 'title': {'de': 'Datensatz', 'en': 'Dataset'}, 'props': {'type': 'dataset'}
 
     return xmetadiss
+
+def add_dctype(parent, nsmap, metadata, mapping, type):
+    props = get_vocabulary_props(
+        "resourcetypes",
+        [
+            "props." + mapping,
+        ],
+        metadata["resource_type"]["id"],
+    )
+    dctype = etree.SubElement(
+        parent, "{http://purl.org/dc/elements/1.1/}type",
+        nsmap=nsmap,
+        attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': type})
+    mapped_type = props.get(mapping)
+    dctype.text = mapped_type
+    return parent

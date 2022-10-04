@@ -28,7 +28,7 @@ class DnbUrnProvider(PIDProvider):
     def generate_id(self, record, **kwargs):
         """Generates an identifier value."""
         prefix = current_app.config.get("URN_DNB_ID_PREFIX", "")
-        return f"urn:nbn:{prefix}:{record.pid.pid_value}"
+        return f"urn:nbn:{prefix}{record.pid.pid_value}"
 
     def reserve(self, pid, record, **kwargs):
         """Constant True.
