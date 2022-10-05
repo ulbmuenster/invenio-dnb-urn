@@ -214,6 +214,14 @@ def xmetadiss_etree(pid, record):
             nsmap=nsmap,
             attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'doi:doi'})
         dcidentifier.text = doi
+    #still missing: dcterms:medium
+    language = etree.SubElement(
+        xmetadiss, "{http://purl.org/dc/elements/1.1/}language",
+        nsmap=nsmap,
+        attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'ddb:titleISO639-2'})
+    language.text = lang
+    #still missing: ddb:transfer
+
     if urn is not None and doi is not None:
         ddbidentifier = etree.SubElement(
             xmetadiss, "{http://www.d-nb.de/standards/ddb/}identifier",
@@ -240,6 +248,16 @@ def xmetadiss_etree(pid, record):
                 nsmap=nsmap,
                 attrib={'{http://www.d-nb.de/standards/ddb/}type': scheme})
             ddbidentifier.text = identifier
+
+    maccess = record['_source']['access']
+    kind = 'free'
+    if maccess['files'] == 'restricted':
+        kind = 'domain'
+    ddbrights = etree.SubElement(
+        xmetadiss, "{http://www.d-nb.de/standards/ddb/}rights",
+        nsmap=nsmap,
+        attrib={'{http://www.d-nb.de/standards/ddb/}kind': kind})
+    #still missing: ddb:license
 
     print(record)
 
