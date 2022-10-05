@@ -56,6 +56,7 @@ def epicur_etree(pid, record):
 
     return epicur
 
+
 def xmetadiss_etree(pid, record):
     """OAI Epicur XML format for OAI-PMH.
 
@@ -186,7 +187,7 @@ def xmetadiss_etree(pid, record):
     if mdate_issued == None:
         mdate_issued = metadata['publication_date']
     date_issued = etree.SubElement(xmetadiss, "{http://purl.org/dc/terms/}issued", nsmap=nsmap,
-                                 attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "dcterms:W3CDTF"})
+                                   attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "dcterms:W3CDTF"})
     date_issued.text = mdate_issued
     dini_mapping = current_app.config.get("XMETADISS_TYPE_DINI_PUBLTYPE")
     dcterms_mapping = current_app.config.get("XMETADISS_TYPE_DCTERMS_DCMITYPE")
@@ -194,18 +195,56 @@ def xmetadiss_etree(pid, record):
     xmetadiss = add_dctype(xmetadiss, nsmap, metadata, dcterms_mapping, 'dcterms:DCMIType')
 
     pids = record['_source']['pids']
+    urn = None
+    doi = None
     for mpid in pids:
         if 'urn' in mpid:
-            print(pids['urn']['identifier'])
+            urn = pids['urn']['identifier']
         if 'doi' in mpid:
-            print(pids['doi']['identifier'])
+            doi = pids['doi']['identifier']
+    if urn is not None:
+        dcidentifier = etree.SubElement(
+            xmetadiss, "{http://purl.org/dc/elements/1.1/}identifier",
+            nsmap=nsmap,
+            attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'urn:nbn'})
+        dcidentifier.text = urn
+    elif doi is not None:
+        dcidentifier = etree.SubElement(
+            xmetadiss, "{http://purl.org/dc/elements/1.1/}identifier",
+            nsmap=nsmap,
+            attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'doi:doi'})
+        dcidentifier.text = doi
+    if urn is not None and doi is not None:
+        ddbidentifier = etree.SubElement(
+            xmetadiss, "{http://www.d-nb.de/standards/ddb/}identifier",
+            nsmap=nsmap,
+            attrib={'{http://www.d-nb.de/standards/ddb/}type': 'DOI'})
+        ddbidentifier.text = doi
+
+    if 'identifiers' in metadata:
+        for midentifier in metadata['identifiers']:
+            identifier = midentifier['identifier']
+            scheme = 'other'
+            if midentifier['scheme'] == 'url':
+                scheme = 'URL'
+            elif midentifier['scheme'] == 'urn':
+                scheme = 'URN'
+            elif midentifier['scheme'] == 'doi':
+                scheme = 'DOI'
+            elif midentifier['scheme'] == 'handle':
+                scheme = 'handle'
+            elif midentifier['scheme'] == 'isbn':
+                scheme = 'ISBN'
+            ddbidentifier = etree.SubElement(
+                xmetadiss, "{http://www.d-nb.de/standards/ddb/}identifier",
+                nsmap=nsmap,
+                attrib={'{http://www.d-nb.de/standards/ddb/}type': scheme})
+            ddbidentifier.text = identifier
 
     print(record)
-    print(pid)
-
-# 'resource_type': {'id': 'dataset', 'title': {'de': 'Datensatz', 'en': 'Dataset'}, 'props': {'type': 'dataset'}
 
     return xmetadiss
+
 
 def add_dctype(parent, nsmap, metadata, mapping, type):
     props = get_vocabulary_props(
