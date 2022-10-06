@@ -257,7 +257,56 @@ def xmetadiss_etree(pid, record):
         xmetadiss, "{http://www.d-nb.de/standards/ddb/}rights",
         nsmap=nsmap,
         attrib={'{http://www.d-nb.de/standards/ddb/}kind': kind})
-    #still missing: ddb:license
+    if 'rights' in metadata:
+        for mright in metadata['rights']:
+            access = etree.SubElement(
+                xmetadiss,
+                "{http://www.d-nb.de/standards/ddb/}licence",
+                nsmap=nsmap,
+                attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'access'})
+            access.text = 'OA'
+            if 'cc' in mright['id']:
+                cc = etree.SubElement(
+                    xmetadiss,
+                    "{http://www.d-nb.de/standards/ddb/}licence",
+                    nsmap=nsmap,
+                    attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'cc'})
+                cc.text = mright['id']
+            else:
+                other_scheme = etree.SubElement(
+                    xmetadiss,
+                    "{http://www.d-nb.de/standards/ddb/}licence",
+                    nsmap=nsmap,
+                    attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'noScheme'})
+                if 'de' in mright['title']:
+                    other_scheme.text = mright['title']['de']
+                else:
+                    other_scheme.text = mright['title']['en']
+            lic_url = etree.SubElement(
+                    xmetadiss,
+                    "{http://www.d-nb.de/standards/ddb/}licence",
+                    nsmap=nsmap,
+                    attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'URL'})
+            lic_url.text = mright['props']['url']
+    else:
+        access = etree.SubElement(
+            xmetadiss,
+            "{http://www.d-nb.de/standards/ddb/}licence",
+            nsmap=nsmap,
+            attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'access'})
+        access.text = 'nOA'
+        other_scheme = etree.SubElement(
+            xmetadiss,
+            "{http://www.d-nb.de/standards/ddb/}licence",
+            nsmap=nsmap,
+            attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'otherScheme'})
+        other_scheme.text = 'Keine Angabe'
+        lic_url = etree.SubElement(
+            xmetadiss,
+            "{http://www.d-nb.de/standards/ddb/}licence",
+            nsmap=nsmap,
+            attrib={'{http://www.d-nb.de/standards/ddb/}licenceType': 'URL'})
+        lic_url.text = 'Keine Angabe'
 
     print(record)
 
