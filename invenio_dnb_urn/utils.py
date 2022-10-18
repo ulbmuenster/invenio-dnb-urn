@@ -7,8 +7,6 @@
 
 """Helpers for serializers."""
 
-# replace this from V10 onward!
-#import elasticsearch_dsl as dsl
 from invenio_access.permissions import system_identity
 from invenio_search.engine import dsl
 from invenio_vocabularies.proxies import current_service as vocabulary_service
