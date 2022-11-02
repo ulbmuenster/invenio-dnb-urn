@@ -5,9 +5,11 @@
 # Invenio-Dnb-Urn is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 
+import json
 import warnings
 
 from dnb_urn_service import DNBUrnServiceRESTClient
+from dnb_urn_service.errors import DNBURNServiceError
 from flask import current_app
 from invenio_pidstore.models import PIDStatus
 from invenio_rdm_records.services.pids.providers import PIDProvider
@@ -84,15 +86,44 @@ class DnbUrnProvider(PIDProvider):
             **kwargs,
         )
 
+    @staticmethod
+    def _log_errors(errors):
+        """Log errors from DNBURNServiceError class."""
+        # DNBURNServiceError is a tuple with the errors on the first
+        errors = json.loads(errors.args[0])["errors"]
+        for error in errors:
+            field = error["source"]
+            reason = error["title"]
+            current_app.logger.warning(f"Error in {field}: {reason}")
+
     def generate_id(self, record, **kwargs):
-        """Generates an identifier value."""
-        prefix = current_app.config.get("URN_DNB_ID_PREFIX", "")
-        return f"urn:nbn:{prefix}{record.pid.pid_value}"
+        """Generate a unique URN."""
+        # Delegate to client
+        return self.client.generate_urn(record)
 
-    def reserve(self, pid, record, **kwargs):
-        """Constant True.
+    def can_modify(self, pid, **kwargs):
+        """Checks if the PID can be modified."""
+        return not pid.is_registered() and not pid.is_reserved()
 
-        PID default status is registered.
-        NBN registration is passive by harvesting OAI with metadataPrefix=epicur.
+    def register(self, pid, record, url=None, **kwargs):
+        """Register a URN via the DNB URN service API.
+
+        :param pid: the PID to register.
+        :param record: the record metadata for the URN.
+        :returns: `True` if is registered successfully.
         """
-        return True
+        # This is what is called when the record is published
+        # and the URN needs to be minted
+        local_success = super().register(pid)
+        if not local_success:
+            return False
+
+        try:
+            self.client.api.create_urn(url=url, urn=pid.pid_value)
+            return True
+        except DNBURNServiceError as e:
+            current_app.logger.warning(
+                "DNBURN provider error when " f"registering URN for {pid.pid_value}"
+            )
+            self._log_errors(e)
+            return False
