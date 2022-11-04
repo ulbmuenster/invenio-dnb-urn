@@ -127,3 +127,25 @@ class DnbUrnProvider(PIDProvider):
             )
             self._log_errors(e)
             return False
+
+    def update(self, pid, url=None, **kwargs):
+        """Update url associated with a URN.
+
+        This can be called after a URN is registered.
+        :param pid: the PID to register.
+        :returns: `True` if is updated successfully.
+        """
+        try:
+            self.client.api.modify_urn(urn=pid.pid_value, url=url)
+        except DNBURNServiceError as e:
+            current_app.logger.warning(
+                "DNBURN provider error when " f"updating URL for {pid.pid_value}"
+            )
+            self._log_errors(e)
+
+            return False
+
+        if pid.is_deleted():
+            return pid.sync_status(PIDStatus.REGISTERED)
+
+        return True
