@@ -149,3 +149,30 @@ class DnbUrnProvider(PIDProvider):
             return pid.sync_status(PIDStatus.REGISTERED)
 
         return True
+
+    def delete(self, pid, **kwargs):
+        """Delete/unregister a registered URN.
+
+        If the PID has not been reserved then it's deleted only locally.
+        Otherwise, there is a problem: a URN can't be deleted remotely.
+        :returns: `True` if is deleted successfully.
+        """
+
+        return super().delete(pid, **kwargs)
+
+    def validate(self, record, identifier=None, provider=None, **kwargs):
+        """Validate the attributes of the identifier.
+
+        :returns: A tuple (success, errors). The first specifies if the
+                  validation was passed successfully. The second one is an
+                  array of error messages.
+        """
+        _, errors = super().validate(record, identifier, provider, **kwargs)
+
+        # Format check
+        try:
+            self.client.api.check_doi(identifier)
+        except ValueError as e:
+            errors.append(str(e))
+
+        return (True, []) if not errors else (False, errors)
