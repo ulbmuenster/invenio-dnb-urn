@@ -74,13 +74,15 @@ class DnbUrnProvider(PIDProvider):
 
     def __init__(
         self,
-        name,
+        id_,
         client=None,
+        pid_type="urn",
         **kwargs):
         """Constructor."""
         super().__init__(
-            name,
-            pid_type="urn",
+            id_,
+            client=(client or DNBUrnClient("dnb", config_prefix="URN_DNB")),
+            pid_type=pid_type,
             default_status=PIDStatus.NEW,
             managed=True,
             **kwargs,
@@ -167,12 +169,13 @@ class DnbUrnProvider(PIDProvider):
                   validation was passed successfully. The second one is an
                   array of error messages.
         """
-        _, errors = super().validate(record, identifier, provider, **kwargs)
+        success, errors = super().validate(record, identifier, provider, **kwargs)
 
         # Format check
-        try:
-            self.client.api.check_doi(identifier)
-        except ValueError as e:
-            errors.append(str(e))
+        if identifier is not None:
+            try:
+                self.client.api.check_urn(identifier)
+            except ValueError as e:
+                errors.append(str(e))
 
-        return (True, []) if not errors else (False, errors)
+        return not bool(errors), errors
