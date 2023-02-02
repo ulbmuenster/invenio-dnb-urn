@@ -140,6 +140,46 @@ def xmetadiss_etree(pid, record):
     ccname.text = sinstitution
     ccplace = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}place", nsmap=nsmap)
     ccplace.text = splace
+    if 'contributors' in metadata:
+        for mcontributor in metadata['contributors']:
+            contributor = etree.SubElement(xmetadiss, "{http://purl.org/dc/elements/1.1/}contributor", nsmap=nsmap,
+                                   attrib={"{http://www.w3.org/2001/XMLSchema-instance}type": "pc:Contributor"})
+            person = etree.SubElement(contributor, "{http://www.d-nb.de/standards/pc/}person", nsmap=nsmap)
+            mperson = mcontributor['person_or_org']
+            if 'identifiers' in mperson:
+                for midentifier in mperson['identifiers']:
+                    mscheme = midentifier['scheme']
+                    if mscheme == "orcid":
+                        id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}ORCID")
+                        id.text = midentifier['identifier']
+                    elif mscheme == "gnd":
+                        person.attrib['{http://www.d-nb.de/standards/ddb/}GND-Nr'] = midentifier['identifier']
+                    elif mscheme == "isni":
+                        id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}ISNI")
+                        id.text = midentifier['identifier']
+                    elif mscheme == "ror":
+                        id = etree.SubElement(person, "{http://www.d-nb.de/standards/ddb/}OtherId")
+                        id.text = "(ror)" + midentifier['identifier']
+            name = etree.SubElement(person, "{http://www.d-nb.de/standards/pc/}name", nsmap=nsmap)
+            if mperson['type'] == 'personal':
+                name.attrib['type'] = "nameUsedByThePerson"
+                foreName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}foreName", nsmap=nsmap)
+                foreName.text = mperson['given_name']
+                surName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}surName", nsmap=nsmap)
+                surName.text = mperson['family_name']
+                if 'affiliations' in mcreator:
+                    maffiliation = mcreator['affiliations'][0]
+                    affiliation = etree.SubElement(person, "{http://www.d-nb.de/standards/pc/}affiliation", nsmap=nsmap)
+                    institution = etree.SubElement(affiliation,
+                                                   "{http://www.d-nb.de/standards/cc/}universityOrInstitution",
+                                                   nsmap=nsmap)
+                    ccname = etree.SubElement(institution, "{http://www.d-nb.de/standards/cc/}name", nsmap=nsmap)
+                    ccname.text = maffiliation['name']
+            else:
+                name.attrib['type'] = "otherName"
+                name.attrib['otherNameType'] = "organisation"
+                organisationName = etree.SubElement(name, "{http://www.d-nb.de/standards/pc/}organisationName", nsmap=nsmap)
+                organisationName.text = mperson['name']
     mdate_issued = None
     if 'dates' in metadata:
         for mdate in metadata['dates']:
