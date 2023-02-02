@@ -45,7 +45,7 @@ Add the following to invenio.cfg:
       },
     }
 
-    URN_DNB_ID_PREFIX = "de:hbz:6-"
+    URN_DNB_ID_PREFIX = "urn:nbn:de:hbz:6-"
     EPICUR_NBN_SCHEME = "urn:nbn:de"
     XMETADISS_TYPE_DINI_PUBLTYPE = "openaire_type"
     XMETADISS_TYPE_DCTERMS_DCMITYPE = "openaire_type"
