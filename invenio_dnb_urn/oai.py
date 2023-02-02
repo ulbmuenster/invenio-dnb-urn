@@ -226,7 +226,16 @@ def xmetadiss_etree(pid, record):
             nsmap=nsmap,
             attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'ddb:titleISO639-2'})
         language.text = lang
-
+    if 'additional_descriptions' in metadata:
+        for additional_description in metadata['additional_descriptions']:
+            if additional_description['type']['id'] == 'series-information':
+                isPartOf = etree.SubElement(
+                    xmetadiss, "{http://purl.org/dc/terms/}isPartOf",
+                    nsmap=nsmap,
+                    attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'ddb:noScheme'})
+                mIsPartOf = additional_description['description'].replace("<p>", "")
+                mIsPartOf = mIsPartOf.replace("</p>", "")
+                isPartOf.text = mIsPartOf
     ddbtransfer = etree.SubElement(
         xmetadiss, "{http://www.d-nb.de/standards/ddb/}transfer",
         nsmap=nsmap,
@@ -234,6 +243,12 @@ def xmetadiss_etree(pid, record):
     ddbtransfer.text = current_app.config.get("SITE_API_URL") + "/records/" \
                            + record['_source']['id'] + "/files-archive"
 
+    ddbidentifier = etree.SubElement(
+        xmetadiss, "{http://www.d-nb.de/standards/ddb/}identifier",
+        nsmap=nsmap,
+        attrib={'{http://www.d-nb.de/standards/ddb/}type': 'URL'})
+    ddbidentifier.text = current_app.config.get("SITE_UI_URL") + "/records/" \
+                           + record['_source']['id']
     if urn is not None and doi is not None:
         ddbidentifier = etree.SubElement(
             xmetadiss, "{http://www.d-nb.de/standards/ddb/}identifier",
