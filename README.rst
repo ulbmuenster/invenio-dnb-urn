@@ -38,11 +38,6 @@ Add the following to invenio.cfg:
     	"schema": "http://schema.datacite.org/oai/oai-1.1/oai.xsd",
     	"namespace": "http://schema.datacite.org/oai/oai-1.1/"
       },
-      "epicur": {
-  	    "serializer": "invenio_dnb_urn.oai:epicur_etree",
-    	"schema": "http://nbn-resolving.de/urn:nbn:de:1111-2004033116",
-    	"namespace": "urn:nbn:de:1111-2004033116"
-      },
       "xMetaDiss": {
   	    "serializer": "invenio_dnb_urn.oai:xmetadiss_etree",
     	"schema": "http://www.d-nb.de/standards/xmetadissplus/xmetadissplus.xsd",
@@ -80,6 +75,7 @@ Add the following to invenio.cfg:
         # URN identifier
         provider.DnbUrnProvider(
             "urn",
+            client=provider.DNBUrnClient("dnb"),
             label=_("URN"),
         ),
     ]
