@@ -215,6 +215,13 @@ def xmetadiss_etree(pid, record):
             nsmap=nsmap,
             attrib={'{http://www.w3.org/2001/XMLSchema-instance}type': 'doi:doi'})
         dcidentifier.text = doi
+
+    if 'sizes' in metadata:
+        for size in metadata['sizes']:
+            dcterms_extent = etree.SubElement(
+                xmetadiss, "{http://purl.org/dc/terms/}extent",
+                nsmap=nsmap)
+            dcterms_extent.text = size
     dcterms_medium = etree.SubElement(
         xmetadiss, "{http://purl.org/dc/terms/}medium",
         nsmap=nsmap,
