@@ -26,6 +26,7 @@ def xmetadiss_etree(pid, record):
         "pc": "http://www.d-nb.de/standards/pc/",
         "cc": "http://www.d-nb.de/standards/cc/",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "thesis": "http://www.ndltd.org/standards/metadata/etdms/1.0/",
     }
 
     attribs = {
@@ -35,7 +36,8 @@ def xmetadiss_etree(pid, record):
         ),
     }
 
-    metadata = record['_source']['metadata']
+    source = record['_source']
+    metadata = source['metadata']
     print(record)
     # prepare the structure required by the 'xMetaDissPlus' metadataPrefix
     xmetadiss = etree.Element("{http://www.d-nb.de/standards/xmetadissplus/}xMetaDiss", nsmap=nsmap, attrib=attribs)
@@ -243,6 +245,35 @@ def xmetadiss_etree(pid, record):
                 mIsPartOf = additional_description['description'].replace("<p>", "")
                 mIsPartOf = mIsPartOf.replace("</p>", "")
                 isPartOf.text = mIsPartOf
+    if 'custom_fields' in source:
+        custom_fields = source['custom_fields']
+        if 'thesis:level' in custom_fields \
+            and 'thesis:organisation' in custom_fields \
+            and 'thesis:place' in custom_fields:
+            thesis_degree = etree.SubElement(
+                xmetadiss, "{http://www.ndltd.org/standards/metadata/etdms/1.0/}degree",
+                nsmap=nsmap)
+            thesis_level = etree.SubElement(
+                thesis_degree, "{http://www.ndltd.org/standards/metadata/etdms/1.0/}level",
+                nsmap=nsmap
+            )
+            thesis_level.text = custom_fields['thesis:level']['id']
+            thesis_grantor = etree.SubElement(
+                thesis_degree, "{http://www.ndltd.org/standards/metadata/etdms/1.0/}grantor",
+                nsmap=nsmap
+            )
+            grantor_institution = etree.SubElement(thesis_grantor,
+                                           "{http://www.d-nb.de/standards/cc/}universityOrInstitution",
+                                           nsmap=nsmap)
+            grantor_ccname = etree.SubElement(
+                grantor_institution, "{http://www.d-nb.de/standards/cc/}name",
+                nsmap=nsmap)
+            grantor_ccname.text = custom_fields['thesis:organisation']
+            grantor_ccplace = etree.SubElement(
+                grantor_institution, "{http://www.d-nb.de/standards/cc/}place",
+                nsmap=nsmap)
+            grantor_ccplace.text = custom_fields['thesis:place']
+
     ddbtransfer = etree.SubElement(
         xmetadiss, "{http://www.d-nb.de/standards/ddb/}transfer",
         nsmap=nsmap,

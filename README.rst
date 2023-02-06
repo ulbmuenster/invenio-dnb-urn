@@ -20,7 +20,7 @@ Configuration
 
 Add the following to invenio.cfg:
 
-.. code-block:: python
+.. code-block::python
 
     OAISERVER_METADATA_FORMATS = {
       "oai_dc": {
@@ -107,3 +107,88 @@ Add the following to invenio.cfg:
             "label": _("URN"),
         },
     }
+..
+
+In order to fully implement xMetaDissPlus with  all mandatory fields, the metadata definition has to be expanded by custom
+fields. At first add the file thesis_types.yaml to /app_data/vocabularies, then add
+
+.. code-block::yaml
+thesis:
+  pid-type: ths
+  data-file: vocabularies/thesis_types.yaml
+..
+to the vocabularies.yaml. Next, add
+
+.. code-block::python
+RDM_NAMESPACES = {
+    # DNB Thesis
+    "thesis": "https://dnb.de/thesis/",
+}
+
+RDM_CUSTOM_FIELDS = {
+    VocabularyCF(
+        name="thesis:level",
+        vocabulary_id="thesis",
+        dump_options=True,
+        multiple=False,
+    ),
+    TextCF(
+        name="thesis:organisation",
+    ),
+    TextCF(
+        name="thesis:place",
+    ),
+}
+
+RDM_CUSTOM_FIELDS_UI = [
+    {
+        "section": _("Hochschulschriftenvermerk"),
+        "fields": [
+            dict(
+                field="thesis:level",
+                ui_widget="Dropdown",
+                props=dict(
+                    label="Abschluss",
+                    placeholder="Grad des Abschlusses",
+                    icon="pencil",
+                    description="You should fill this field with the thesis degree",
+                    search=True,  # True for autocomplete dropdowns with search functionality
+                    multiple=False,   # True for selecting multiple values
+                    clearable=True,
+                    required=False,
+                )
+            ),
+            dict(
+                field="thesis:organisation",
+                ui_widget="Input",
+                props=dict(
+                    label="Hochschule",
+                    placeholder="Verleihende Hochschule",
+                    icon="pencil",
+                    description="You should fill this field with the institution that awards the degree",
+                    required=False,
+                )
+            ),
+            dict(
+                field="thesis:place",
+                ui_widget="Input",
+                props=dict(
+                    label="Ort",
+                    placeholder="Ort",
+                    icon="pencil",
+                    description="Place of the university/institution.",
+                    required=False,
+                )
+            ),
+        ]
+    }
+]
+..
+
+to your invenio.cfg and execute
+
+.. code-block::bash
+pipenv run invenio rdm-records custom-fields init
+
+..
+

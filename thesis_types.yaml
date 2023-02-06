@@ -1,0 +1,28 @@
+- id: "thesis.doctoral"
+  title:
+    en: "PhD thesis"
+    de: "Dissertation"
+- id: "thesis.habilitation"
+  title:
+    en: "Habilitation treatise"
+    de: "Habilitationsschrift"
+- id: "bachelor"
+  title:
+    en: "Bachelor's thesis"
+    de: "Bachelorarbeit"
+- id: "master"
+  title:
+    en: "Master's thesis"
+    de: "Masterarbeit"
+- id: "Staatsexamen"
+  title:
+    en: "State examination"
+    de: "Staatsexamen"
+- id: "M.A."
+  title:
+    en: "Graduate degree"
+    de: "Magisterarbeit"
+- id: "Diplom"
+  title:
+    en: "Diploma thesis"
+    de: "Diplomarbeit"            
