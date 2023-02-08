@@ -186,7 +186,7 @@ to the vocabularies.yaml. Next, add
 
 to your invenio.cfg and execute
 
-.. code-block::
+.. code-block:: console
     pipenv run invenio rdm-records custom-fields init
 
 
