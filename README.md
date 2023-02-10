@@ -12,7 +12,7 @@
 DNB support module for InvenioRDM. It offers a URN PIDProvider and additional metadata formats to be included
 in the OAI-PMH server. Currently these are epicur and xMetaDissPlus.
 In a later step the epicur format will be replaced by extending the URN PIDProvider by accessing the
-DNB REST-API's to directly mint new and changed URN's.
+DNB REST-APIs to directly mint new and changed URN's.
 
 ## Configuration
 
