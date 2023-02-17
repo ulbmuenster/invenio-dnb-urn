@@ -1,5 +1,5 @@
 ```
-    Copyright (C) 2022 University of Münster.
+    Copyright (C) 2022, 2023 University of Münster.
 
 
     Invenio-DNB-Urn is free software; you can redistribute it and/or
@@ -46,8 +46,7 @@ OAISERVER_METADATA_FORMATS = {
   },
 }
 
-URN_DNB_ID_PREFIX = "urn:nbn:de:hbz:6-"
-EPICUR_NBN_SCHEME = "urn:nbn:de"
+URN_DNB_ID_PREFIX = "urn:nbn:de:hbz:6"
 XMETADISS_TYPE_DINI_PUBLTYPE = "openaire_type"
 XMETADISS_TYPE_DCTERMS_DCMITYPE = "openaire_type"
 
